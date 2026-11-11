@@ -1,0 +1,7 @@
+## Interface: 16001
+## Title: Shiny Things
+## Notes: Shows icons over lootable/interactable objects and manages minimap tracking. /shiny
+## Author: LankyFranky89
+## Version: 1.3.0
+## SavedVariables: ShinyThingsDB
+ShinyThings.lua
