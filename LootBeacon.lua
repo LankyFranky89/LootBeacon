@@ -1,6 +1,6 @@
--- Shiny Things: soft-target object icons + minimap tracking helper
-local ADDON = "ShinyThings"
-local P = "|cffffd100Shiny Things:|r "
+-- LootBeacon: soft-target object icons + minimap tracking helper
+local ADDON = "LootBeacon"
+local P = "|cffffd100LootBeacon:|r "
 
 local ICON_CVARS = {
   SoftTargetInteract         = "3", -- interact soft-target always on
@@ -35,14 +35,14 @@ local function ApplyIcons(on)
   for name, val in pairs(ICON_CVARS) do
     if cvarExists(name) then
       if on then
-        ShinyThingsDB.saved[name] = ShinyThingsDB.saved[name] or GetCVar(name)
+        LootBeaconDB.saved[name] = LootBeaconDB.saved[name] or GetCVar(name)
         SetCVar(name, val)
-      elseif ShinyThingsDB.saved[name] then
-        SetCVar(name, ShinyThingsDB.saved[name])
+      elseif LootBeaconDB.saved[name] then
+        SetCVar(name, LootBeaconDB.saved[name])
       end
     end
   end
-  if not on then ShinyThingsDB.saved = {} end
+  if not on then LootBeaconDB.saved = {} end
   return true
 end
 
@@ -84,7 +84,7 @@ local function Track(key)
   local entry = TRACK[key]
   if not entry then return msg("unknown type. Use herbs, ore, treasure or fish.") end
   if SetTrackingByName(entry[1]) then
-    ShinyThingsDB.track = key
+    LootBeaconDB.track = key
     msg("tracking " .. entry[1] .. ". It turns back on after you die.")
   else
     msg("you don't know " .. entry[1] .. ".")
@@ -92,14 +92,14 @@ local function Track(key)
 end
 
 local function Status()
-  msg("object icons: " .. (Supported() and (ShinyThingsDB.icons and "|cff00ff00on|r" or "|cffff4040off|r") or "not supported"))
-  msg("remembered tracking: " .. (ShinyThingsDB.track or "none"))
+  msg("object icons: " .. (Supported() and (LootBeaconDB.icons and "|cff00ff00on|r" or "|cffff4040off|r") or "not supported"))
+  msg("remembered tracking: " .. (LootBeaconDB.track or "none"))
 end
 
 local function IsIgnored(name)
   if not name then return false end
   local n = name:lower()
-  for word in pairs(ShinyThingsDB.ignore) do
+  for word in pairs(LootBeaconDB.ignore) do
     if n:find(word, 1, true) then return true end
   end
   return false
@@ -175,15 +175,15 @@ local function IsLootable(name)
     local o = Norm(obj)
     if o:find(nn, 1, true) or nn:find(o, 1, true) or WordMatch(nn, o) then return true end
   end
-  for w in pairs(ShinyThingsDB.allow) do if n:find(w, 1, true) then return true end end
+  for w in pairs(LootBeaconDB.allow) do if n:find(w, 1, true) then return true end end
   return false
 end
 
 local hiding = false
 local function CheckSoftTarget()
-  if not ShinyThingsDB or not ShinyThingsDB.icons or not Supported() then return end
+  if not LootBeaconDB or not LootBeaconDB.icons or not Supported() then return end
   local name = UnitName("softinteract")
-  local ignore = name and (IsIgnored(name) or (ShinyThingsDB.lootOnly and not IsLootable(name)))
+  local ignore = name and (IsIgnored(name) or (LootBeaconDB.lootOnly and not IsLootable(name)))
   if ignore and not hiding then
     hiding = true
     SetCVar("SoftTargetIconGameObject", "0"); SetCVar("SoftTargetIconInteract", "0")
@@ -195,52 +195,52 @@ end
 
 local function ListIgnore()
   local t = {}
-  for w in pairs(ShinyThingsDB.ignore) do t[#t + 1] = w end
+  for w in pairs(LootBeaconDB.ignore) do t[#t + 1] = w end
   table.sort(t)
   msg("ignored: " .. (#t > 0 and table.concat(t, ", ") or "nothing"))
 end
 
-SLASH_SHINYTHINGS1 = "/shiny"
-SLASH_SHINYTHINGS2 = "/glow"
-SlashCmdList.SHINYTHINGS = function(arg)
+SLASH_LOOTBEACON1 = "/beacon"
+SLASH_LOOTBEACON2 = "/glow"
+SlashCmdList.LOOTBEACON = function(arg)
   arg = (arg or ""):lower():match("^%s*(.-)%s*$")
   if arg == "" then
-    ShinyThingsDB.icons = not ShinyThingsDB.icons
-    if ApplyIcons(ShinyThingsDB.icons) then
-      msg("object icons " .. (ShinyThingsDB.icons and "|cff00ff00on|r" or "|cffff4040off|r"))
+    LootBeaconDB.icons = not LootBeaconDB.icons
+    if ApplyIcons(LootBeaconDB.icons) then
+      msg("object icons " .. (LootBeaconDB.icons and "|cff00ff00on|r" or "|cffff4040off|r"))
     end
   elseif arg == "status" then Status(); ListIgnore()
-    msg("loot-only mode: " .. (ShinyThingsDB.lootOnly and "|cff00ff00on|r" or "|cffff4040off|r"))
+    msg("loot-only mode: " .. (LootBeaconDB.lootOnly and "|cff00ff00on|r" or "|cffff4040off|r"))
   elseif arg == "lootonly" then
-    ShinyThingsDB.lootOnly = not ShinyThingsDB.lootOnly
-    msg("loot-only mode " .. (ShinyThingsDB.lootOnly and "|cff00ff00on|r" or "|cffff4040off|r")); CheckSoftTarget()
+    LootBeaconDB.lootOnly = not LootBeaconDB.lootOnly
+    msg("loot-only mode " .. (LootBeaconDB.lootOnly and "|cff00ff00on|r" or "|cffff4040off|r")); CheckSoftTarget()
   elseif arg == "allow" then
     local name = UnitName("softinteract")
-    if name then ShinyThingsDB.allow[name:lower()] = true; msg("now showing " .. name); CheckSoftTarget() end
+    if name then LootBeaconDB.allow[name:lower()] = true; msg("now showing " .. name); CheckSoftTarget() end
   elseif arg:match("^allow ") then
-    local w = arg:match("^allow (.+)"); ShinyThingsDB.allow[w] = true; msg("now showing anything named *" .. w .. "*"); CheckSoftTarget()
+    local w = arg:match("^allow (.+)"); LootBeaconDB.allow[w] = true; msg("now showing anything named *" .. w .. "*"); CheckSoftTarget()
   elseif arg:match("^unallow ") then
-    local w = arg:match("^unallow (.+)"); ShinyThingsDB.allow[w] = nil; msg("removed " .. w); CheckSoftTarget()
+    local w = arg:match("^unallow (.+)"); LootBeaconDB.allow[w] = nil; msg("removed " .. w); CheckSoftTarget()
   elseif arg == "ignore" then
     local name = UnitName("softinteract")
-    if name then ShinyThingsDB.ignore[name:lower()] = true; msg("now ignoring " .. name); CheckSoftTarget()
+    if name then LootBeaconDB.ignore[name:lower()] = true; msg("now ignoring " .. name); CheckSoftTarget()
     else ListIgnore() end
   elseif arg:match("^ignore ") then
-    local w = arg:match("^ignore (.+)"); ShinyThingsDB.ignore[w] = true; msg("now ignoring anything named *" .. w .. "*"); CheckSoftTarget()
+    local w = arg:match("^ignore (.+)"); LootBeaconDB.ignore[w] = true; msg("now ignoring anything named *" .. w .. "*"); CheckSoftTarget()
   elseif arg:match("^unignore ") then
-    local w = arg:match("^unignore (.+)"); ShinyThingsDB.ignore[w] = nil; msg("stopped ignoring " .. w); CheckSoftTarget()
+    local w = arg:match("^unignore (.+)"); LootBeaconDB.ignore[w] = nil; msg("stopped ignoring " .. w); CheckSoftTarget()
   elseif arg == "off" or arg == "track off" then
-    ShinyThingsDB.track = nil; msg("stopped remembering tracking.")
+    LootBeaconDB.track = nil; msg("stopped remembering tracking.")
   elseif arg:match("^track ") then Track(arg:match("^track (%a+)"))
   elseif TRACK[arg] then Track(arg)
   else
-    msg("/shiny - toggle object icons")
-    msg("/shiny herbs | ore | treasure | fish - set and remember tracking")
-    msg("/shiny ignore - ignore the object the icon is on now")
-    msg("/shiny ignore <word> | unignore <word> - edit the ignore list")
-    msg("/shiny lootonly - only show icons on lootable things (default on)")
-    msg("/shiny allow [word] | unallow <word> - extra things to always show")
-    msg("/shiny off - forget tracking   /glow status")
+    msg("/beacon - toggle object icons")
+    msg("/beacon herbs | ore | treasure | fish - set and remember tracking")
+    msg("/beacon ignore - ignore the object the icon is on now")
+    msg("/beacon ignore <word> | unignore <word> - edit the ignore list")
+    msg("/beacon lootonly - only show icons on lootable things (default on)")
+    msg("/beacon allow [word] | unallow <word> - extra things to always show")
+    msg("/beacon off - forget tracking   /glow status")
   end
 end
 
@@ -252,27 +252,27 @@ pcall(f.RegisterEvent, f, "PLAYER_SOFT_INTERACT_CHANGED")
 f:SetScript("OnEvent", function(_, ev)
   if ev == "PLAYER_SOFT_INTERACT_CHANGED" then return CheckSoftTarget() end
   if ev == "PLAYER_LOGIN" then
-    ShinyThingsDB = ShinyThingsDB or { icons = true, saved = {} }
-    ShinyThingsDB.saved = ShinyThingsDB.saved or {}
-    ShinyThingsDB.allow = ShinyThingsDB.allow or {}
-    if ShinyThingsDB.lootOnly == nil then ShinyThingsDB.lootOnly = true end
-    if not ShinyThingsDB.ignore then
-      ShinyThingsDB.ignore = {}
-      for _, w in ipairs(DEFAULT_IGNORE) do ShinyThingsDB.ignore[w] = true end
+    LootBeaconDB = LootBeaconDB or { icons = true, saved = {} }
+    LootBeaconDB.saved = LootBeaconDB.saved or {}
+    LootBeaconDB.allow = LootBeaconDB.allow or {}
+    if LootBeaconDB.lootOnly == nil then LootBeaconDB.lootOnly = true end
+    if not LootBeaconDB.ignore then
+      LootBeaconDB.ignore = {}
+      for _, w in ipairs(DEFAULT_IGNORE) do LootBeaconDB.ignore[w] = true end
     end
-    if not ShinyThingsDB.restored123 then
+    if not LootBeaconDB.restored123 then
       for k, v in pairs(RESTORE) do
-        if GetCVar(k) ~= nil then SetCVar(k, (ShinyThingsDB.saved[k]) or GetCVarDefault and GetCVarDefault(k) or v) end
-        ShinyThingsDB.saved[k] = nil
+        if GetCVar(k) ~= nil then SetCVar(k, (LootBeaconDB.saved[k]) or GetCVarDefault and GetCVarDefault(k) or v) end
+        LootBeaconDB.saved[k] = nil
       end
-      ShinyThingsDB.restored123 = true
+      LootBeaconDB.restored123 = true
     end
-    if ShinyThingsDB.icons and Supported() then ApplyIcons(true) end
+    if LootBeaconDB.icons and Supported() then ApplyIcons(true) end
   end
   -- re-apply remembered tracking (lost on death in Classic)
-  if ShinyThingsDB and ShinyThingsDB.track then
+  if LootBeaconDB and LootBeaconDB.track then
     C_Timer.After(1.5, function()
-      if not UnitIsDeadOrGhost("player") then SetTrackingByName(TRACK[ShinyThingsDB.track][1]) end
+      if not UnitIsDeadOrGhost("player") then SetTrackingByName(TRACK[LootBeaconDB.track][1]) end
     end)
   end
 end)

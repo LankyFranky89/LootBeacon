@@ -1,0 +1,7 @@
+## Interface: 16001
+## Title: LootBeacon
+## Notes: Shows icons over lootable/interactable objects and manages minimap tracking. /beacon
+## Author: LankyFranky89
+## Version: 1.4.0
+## SavedVariables: LootBeaconDB
+LootBeacon.lua
